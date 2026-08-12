@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-background: #06151a;
+  --color-surface: #0f1c20;
+  --color-surface-elevated: #152428;
+  --color-border: rgba(53, 208, 95, 0.14);
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-primary: #35d05f;
+  --color-primary-hover: #2bb851;
+  --color-primary-muted: rgba(53, 208, 95, 0.14);
+  --color-danger: #ef4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.16);
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  --color-wide: #a855f7;
+  --color-noball: #f97316;
+  --color-bye: #3b82f6;
+  --color-text: #f3f7f5;
+  --color-text-muted: #8fa39a;
+  --color-text-subtle: #6b7c76;
+  --sidebar-width: 260px;
+  --bottom-nav-height: 64px;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-background font-sans text-text;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(53, 208, 95, 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 80, 60, 0.18), transparent);
+    background-attachment: fixed;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  *:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 60%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes auth-hero-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+    color: #111 !important;
+  }
+
+  .print\:hidden,
+  aside,
+  nav,
+  [data-testid='desktop-sidebar'],
+  [data-testid='mobile-bottom-nav'],
+  header {
+    display: none !important;
+  }
+
+  .scorecard-print,
+  .scorecard-print * {
+    color: #111 !important;
+    box-shadow: none !important;
+  }
+
+  .scorecard-print {
+    max-width: 100% !important;
+  }
+}

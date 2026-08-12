@@ -1,0 +1,12 @@
+export type { QueuedScoringEvent, OfflineCommandPayload, ConnectionUiState } from './types';
+export { ensureOfflineDb, isOfflineDbUnavailable, resetOfflineDbForTests } from './db';
+export { enqueueCommand, listActiveQueue, countByStatus, listResumeCandidates } from './queue';
+export { syncMatchQueue } from './sync';
+export { submitScoringCommand } from './submitCommand';
+export { useOfflineConnectivity } from './useOfflineConnectivity';
+export { useOfflineUiStore } from './offlineUiStore';
+export { OfflineBanner } from './OfflineBanner';
+export { SyncStatusPanel } from './SyncStatusPanel';
+export { OfflineResumeCard } from './OfflineResumeCard';
+export { OfflineScoreBadge } from './OfflineScoreBadge';
+export { isNetworkFailure, isProbablyOnline, probeApiHealth } from './connectivity';
