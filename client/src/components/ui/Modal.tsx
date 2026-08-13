@@ -38,12 +38,12 @@ export function Modal({ open, title, children, onClose, className, footer }: Mod
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'relative z-10 flex max-h-[90vh] w-full flex-col rounded-t-2xl border border-border-subtle bg-surface shadow-card sm:max-w-lg sm:rounded-card',
+          'relative z-10 flex max-h-[90vh] w-full min-w-0 max-w-full flex-col rounded-t-2xl border border-border-subtle bg-surface shadow-card sm:max-w-lg sm:rounded-card',
           className,
         )}
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
-          <h2 className="font-display text-lg font-semibold">{title}</h2>
+          <h2 className="min-w-0 truncate font-display text-lg font-semibold">{title}</h2>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-5 w-5" />
           </Button>
