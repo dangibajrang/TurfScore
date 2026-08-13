@@ -83,6 +83,8 @@ export type InningsState = {
   strikerId: string | null;
   nonStrikerId: string | null;
   currentBowlerId: string | null;
+  /** Bowler who completed the previous over — cannot bowl the next one. */
+  lastOverBowlerId: string | null;
   /** Legal balls bowled in the current over (0 .. ballsPerOver-1 until complete) */
   ballsInCurrentOver: number;
   batters: Record<string, BatterState>;
