@@ -18,7 +18,6 @@ import {
   formatOvers,
   maxLegalBalls,
   maxWickets,
-  resolveMaxOversPerBowler,
   sumExtras,
 } from './utils.js';
 import {
@@ -30,6 +29,7 @@ import {
 import {
   currentInnings,
   isBowlerWicket,
+  validateBowlerSelection,
   validateDeliveryCommand,
 } from './validators/commandValidator.js';
 
@@ -235,6 +235,7 @@ export function applyDelivery(
 
     inn.pendingNewBowler = true;
     inn.bowlerSelected = false;
+    inn.lastOverBowlerId = command.bowlerId;
     inn.currentBowlerId = null;
     needsNewBowler = true;
   }
@@ -446,17 +447,7 @@ export function setCurrentBowler(
   const inn = currentInnings(next);
   if (inn.isComplete) throw new CricketEngineError('Innings completed', 'INNINGS_COMPLETED');
 
-  const maxOvers = resolveMaxOversPerBowler(next.rules);
-  const existing = inn.bowlers[bowlerId];
-  if (existing && inn.ballsInCurrentOver === 0) {
-    const completed = Math.floor(existing.legalBalls / next.rules.ballsPerOver);
-    if (completed >= maxOvers) {
-      throw new CricketEngineError('Bowler has reached maximum overs', 'BOWLER_LIMIT_REACHED');
-    }
-  }
-  // Cannot bowl consecutive overs: if last over was same bowler and starting new over
-  // Simple rule: if pending new bowler, previous bowler may not continue (standard)
-  // We track via: if ballsInCurrentOver===0 and we had a previous completed over by this bowler as last — skip for Phase 5 simplicity unless consecutive
+  validateBowlerSelection(next, bowlerId, bowlingXi);
 
   ensureBowler(inn, bowlerId);
   inn.currentBowlerId = bowlerId;
