@@ -44,6 +44,16 @@ export function validateBowlerSelection(
   if (!bowlingXi.has(bowlerId)) {
     throw new CricketEngineError('Bowler must be in bowling XI', 'INVALID_BOWLER');
   }
+  if (
+    inn.ballsInCurrentOver === 0 &&
+    inn.lastOverBowlerId &&
+    inn.lastOverBowlerId === bowlerId
+  ) {
+    throw new CricketEngineError(
+      'A bowler cannot bowl consecutive overs',
+      'CONSECUTIVE_OVERS',
+    );
+  }
   const maxOvers = resolveMaxOversPerBowler(state.rules);
   const bowler = inn.bowlers[bowlerId];
   if (bowler) {
