@@ -1,21 +1,34 @@
-import { Avatar, Card } from '@/components/ui';
+import { Avatar, Button, Card } from '@/components/ui';
 import type { InningsState, MatchScorecard } from '../types';
+
+type PlayerInfo = { id: string; name: string };
 
 type Props = {
   innings: InningsState;
   scorecardInnings: MatchScorecard['innings'][number] | undefined;
-  playersById: Map<string, { id: string; name: string }>;
+  playersById: Map<string, PlayerInfo>;
+  onSelectBowler?: () => void;
 };
 
-export function CurrentBowler({ innings, scorecardInnings, playersById }: Props) {
+export function CurrentBowler({ innings, scorecardInnings, playersById, onSelectBowler }: Props) {
   const id = innings.currentBowlerId;
   if (!id) {
     return (
-      <Card data-testid="current-bowler">
+      <Card className="space-y-3" data-testid="current-bowler">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
           Current bowler
         </h3>
-        <p className="mt-2 text-sm text-text-muted">Select a bowler to continue.</p>
+        <p className="text-sm text-text-muted">No bowler selected for this over.</p>
+        {onSelectBowler ? (
+          <Button
+            className="w-full"
+            size="sm"
+            onClick={onSelectBowler}
+            data-testid="select-bowler"
+          >
+            Select bowler
+          </Button>
+        ) : null}
       </Card>
     );
   }
@@ -29,11 +42,11 @@ export function CurrentBowler({ innings, scorecardInnings, playersById }: Props)
       <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
         Current bowler
       </h3>
-      <div className="flex items-center gap-2">
-        <Avatar name={name} size="sm" />
-        <div>
-          <p className="font-semibold">{name}</p>
-          <p className="text-sm text-text-muted tabular-nums">
+      <div className="flex min-w-0 items-center gap-2">
+        <Avatar name={name} size="sm" className="shrink-0" />
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{name}</p>
+          <p className="break-words text-sm text-text-muted tabular-nums">
             {sc?.oversDisplay ?? '0.0'} – {stats?.maidens ?? 0} – {stats?.runsConceded ?? 0} –{' '}
             {stats?.wickets ?? 0}
             {sc ? ` · Econ ${sc.economy.toFixed(2)}` : ''}
