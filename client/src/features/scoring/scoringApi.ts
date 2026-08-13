@@ -37,6 +37,7 @@ export const scoringApi = {
       state: MatchState;
       result: import('./types').DeliveryResult | null;
       scorecard: MatchScorecard;
+      presentation?: import('./types').LivePresentation;
     }>(`/api/matches/${matchId}/deliveries`, {
       method: 'POST',
       body,
@@ -50,6 +51,8 @@ export const scoringApi = {
       undoneEventId: string;
       state: MatchState;
       scorecard: MatchScorecard;
+      presentation: import('./types').LivePresentation;
+      recentDeliveries: DeliveryDto[];
     }>(`/api/matches/${matchId}/undo`, {
       method: 'POST',
       body: { expectedVersion },
