@@ -48,7 +48,7 @@ export function UserMenu() {
     <div className="relative" ref={ref}>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-control px-2 py-1.5 hover:bg-surface-elevated"
+        className="flex items-center gap-2 rounded-control px-1 py-1.5 hover:bg-surface-elevated sm:px-2"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -58,7 +58,7 @@ export function UserMenu() {
           <div className="truncate text-sm font-semibold">{user.name}</div>
           <div className="truncate text-xs text-text-muted">{user.email}</div>
         </div>
-        <ChevronDown className="h-4 w-4 text-text-muted" />
+        <ChevronDown className="hidden h-4 w-4 text-text-muted sm:block" />
       </button>
 
       {open ? (
