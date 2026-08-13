@@ -47,6 +47,7 @@ export function createInnings(input: {
     strikerId: null,
     nonStrikerId: null,
     currentBowlerId: null,
+    lastOverBowlerId: null,
     ballsInCurrentOver: 0,
     batters: {},
     bowlers: {},
