@@ -12,7 +12,10 @@ type Props = {
 };
 
 const runBtn =
-  'min-h-[52px] min-w-[52px] rounded-control border border-border-subtle bg-surface-elevated text-xl font-bold text-text transition active:scale-[0.97] disabled:opacity-40 sm:min-h-[56px]';
+  'min-h-[48px] min-w-0 w-full rounded-control border border-border-subtle bg-surface-elevated text-lg font-bold text-text transition active:scale-[0.97] disabled:opacity-40 sm:min-h-[56px] sm:text-xl';
+
+const extraBtn =
+  'min-h-[44px] min-w-0 w-full rounded-control px-0.5 text-center text-[11px] font-semibold leading-tight text-white disabled:opacity-40 sm:min-h-[48px] sm:px-1 sm:text-sm';
 
 export function ScoringKeypad({
   disabled,
@@ -25,8 +28,8 @@ export function ScoringKeypad({
   onUndo,
 }: Props) {
   return (
-    <div className="space-y-2" data-testid="scoring-keypad" aria-label="Scoring keypad">
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+    <div className="min-w-0 space-y-2" data-testid="scoring-keypad" aria-label="Scoring keypad">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {[0, 1, 2, 3, 4, 5, 6].map((n) => (
           <button
             key={n}
@@ -52,11 +55,11 @@ export function ScoringKeypad({
         WICKET
       </button>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1 sm:gap-2">
         <button
           type="button"
           disabled={disabled}
-          className="min-h-[48px] rounded-control bg-[color:var(--color-wide)] font-semibold text-white disabled:opacity-40"
+          className={cn(extraBtn, 'bg-[color:var(--color-wide)]')}
           onClick={onWide}
           data-testid="score-wide"
         >
@@ -65,7 +68,7 @@ export function ScoringKeypad({
         <button
           type="button"
           disabled={disabled}
-          className="min-h-[48px] rounded-control bg-[color:var(--color-noball)] font-semibold text-white disabled:opacity-40"
+          className={cn(extraBtn, 'bg-[color:var(--color-noball)]')}
           onClick={onNoBall}
           data-testid="score-noball"
         >
@@ -74,7 +77,7 @@ export function ScoringKeypad({
         <button
           type="button"
           disabled={disabled}
-          className="min-h-[48px] rounded-control bg-[color:var(--color-bye)] font-semibold text-white disabled:opacity-40"
+          className={cn(extraBtn, 'bg-[color:var(--color-bye)]')}
           onClick={onBye}
           data-testid="score-bye"
         >
@@ -83,7 +86,7 @@ export function ScoringKeypad({
         <button
           type="button"
           disabled={disabled}
-          className="min-h-[48px] rounded-control bg-[color:var(--color-bye)]/80 font-semibold text-white disabled:opacity-40"
+          className={cn(extraBtn, 'bg-[color:var(--color-bye)]/80')}
           onClick={onLegBye}
           data-testid="score-legbye"
         >
