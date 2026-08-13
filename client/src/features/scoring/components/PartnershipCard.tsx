@@ -30,7 +30,7 @@ export function PartnershipCard({ partnership, playersById }: Props) {
         {partnership.runs}
         <span className="text-base text-text-muted"> ({partnership.balls} balls)</span>
       </p>
-      <p className="mt-1 text-sm text-text-muted">
+      <p className="mt-1 break-words text-sm text-text-muted">
         {a} & {b}
       </p>
     </Card>
