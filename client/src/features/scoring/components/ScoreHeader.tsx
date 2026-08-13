@@ -24,19 +24,19 @@ export function ScoreHeader({ presentation, battingTeam, bowlingTeam, flash }: P
   return (
     <section
       className={cn(
-        'rounded-card border border-border-subtle bg-surface p-4 transition',
+        'min-w-0 rounded-card border border-border-subtle bg-surface p-3 transition sm:p-4',
         flash === 'wicket' && 'motion-safe:animate-pulse border-danger/50',
         (flash === 'four' || flash === 'six') && 'motion-safe:ring-2 motion-safe:ring-primary/50',
       )}
       aria-live="polite"
       data-testid="score-header"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold uppercase tracking-wider text-text-muted">
             {batName}
           </p>
-          <p className="font-display text-4xl font-bold tracking-tight text-text sm:text-5xl">
+          <p className="font-display text-3xl font-bold tracking-tight text-text sm:text-5xl">
             {presentation.totalRuns}
             <span className="text-text-muted"> / {presentation.wickets}</span>
           </p>
@@ -47,12 +47,12 @@ export function ScoreHeader({ presentation, battingTeam, bowlingTeam, flash }: P
               : ''}
           </p>
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <div className="flex flex-wrap items-center justify-end gap-2">
             <OfflineScoreBadge />
             <Badge tone="danger">LIVE</Badge>
           </div>
-          <p className="mt-2 text-sm text-text-muted">vs {bowlName}</p>
+          <p className="mt-2 truncate text-sm text-text-muted">vs {bowlName}</p>
         </div>
       </div>
 
