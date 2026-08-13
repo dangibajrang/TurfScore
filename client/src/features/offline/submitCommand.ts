@@ -1,5 +1,5 @@
 import { createEventId } from '@/features/scoring/eventId';
-import type { ScoringStateResponse } from '@/features/scoring/types';
+import type { DeliveryDto, ScoringStateResponse } from '@/features/scoring/types';
 import type { MatchDto } from '@/features/matches/types';
 import {
   isProbablyOnline,
@@ -10,7 +10,7 @@ import {
 } from './connectivity';
 import { ensureOfflineDb } from './db';
 import { OfflineError, OFFLINE_UNAVAILABLE } from './errors';
-import { buildLocalHint, projectPresentationAfterCommand, projectStateAfterCommand } from './localProjection';
+import { buildLocalHint, projectPresentationAfterCommand, projectRecentDeliveriesAfterCommand, projectScorecardFromState, projectStateAfterCommand } from './localProjection';
 import { countByStatus, enqueueCommand, saveMatchContext } from './queue';
 import { useOfflineUiStore } from './offlineUiStore';
 import { syncMatchQueue } from './sync';
@@ -29,6 +29,8 @@ export type SubmitOutcome =
       event: QueuedScoringEvent;
       projectedPresentation: ScoringStateResponse['presentation'];
       projectedState: ScoringStateResponse['state'];
+      recentDeliveries: DeliveryDto[];
+      projectedScorecard: ScoringStateResponse['scorecard'];
     };
 
 async function postOnline(
@@ -110,17 +112,27 @@ export async function queueLocally(input: {
   });
 
   const ballsPerOver = input.snapshot.state.rules.ballsPerOver ?? 6;
+  const lastDelivery = input.snapshot.recentDeliveries?.[0] ?? null;
   const projected = projectPresentationAfterCommand(
     input.snapshot.presentation,
     ballsPerOver,
     input.payload,
+    lastDelivery,
   );
   const projectedState = projectStateAfterCommand(
     input.snapshot.state,
     ballsPerOver,
     input.payload,
     input.snapshot.presentation,
+    lastDelivery,
   );
+  const recentDeliveries = projectRecentDeliveriesAfterCommand(
+    input.snapshot.recentDeliveries ?? [],
+    input.payload,
+    input.snapshot.presentation,
+    input.eventId,
+  );
+  const projectedScorecard = projectScorecardFromState(input.snapshot.scorecard, projectedState);
   const counts = await countByStatus(input.matchId);
   const pending = counts.PENDING + counts.SYNCING + counts.FAILED;
   const hint = buildLocalHint(input.snapshot, pending, projected);
@@ -138,6 +150,8 @@ export async function queueLocally(input: {
       ...input.snapshot,
       presentation: projected,
       state: projectedState,
+      recentDeliveries,
+      scorecard: projectedScorecard,
     },
     localPresentationHint: hint,
   });
@@ -147,6 +161,8 @@ export async function queueLocally(input: {
     event,
     projectedPresentation: projected,
     projectedState,
+    recentDeliveries,
+    projectedScorecard,
   };
 }
 
@@ -223,16 +239,27 @@ export async function submitScoringCommand(input: {
       input.payload,
     );
     markApiReachable();
-    // Persist context without blocking the scorer on IndexedDB write failures.
+    const onlineSnap =
+      response && typeof response === 'object'
+        ? (response as Partial<ScoringStateResponse>)
+        : {};
     void saveMatchContext({
       matchId: input.matchId,
       match: input.match,
-      serverSnapshot: { ...input.snapshot, matchVersion },
+      serverSnapshot: {
+        ...input.snapshot,
+        matchVersion,
+        state: onlineSnap.state ?? input.snapshot.state,
+        presentation: onlineSnap.presentation ?? input.snapshot.presentation,
+        scorecard: onlineSnap.scorecard ?? input.snapshot.scorecard,
+        recentDeliveries: onlineSnap.recentDeliveries ?? input.snapshot.recentDeliveries,
+        status: onlineSnap.status ?? input.snapshot.status,
+      },
       localPresentationHint: {
-        totalRuns: input.snapshot.presentation.totalRuns,
-        wickets: input.snapshot.presentation.wickets,
-        legalBalls: input.snapshot.presentation.legalBalls,
-        oversDisplay: input.snapshot.presentation.oversDisplay,
+        totalRuns: (onlineSnap.presentation ?? input.snapshot.presentation).totalRuns,
+        wickets: (onlineSnap.presentation ?? input.snapshot.presentation).wickets,
+        legalBalls: (onlineSnap.presentation ?? input.snapshot.presentation).legalBalls,
+        oversDisplay: (onlineSnap.presentation ?? input.snapshot.presentation).oversDisplay,
         pendingCount: 0,
         confidence: 'SERVER_CONFIRMED',
       },
