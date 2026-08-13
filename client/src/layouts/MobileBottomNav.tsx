@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Trophy, Users, UserRound, Menu } from 'lucide-react';
 import { useUiStore } from '@/stores/uiStore';
 import { cn } from '@/lib/cn';
@@ -15,8 +15,14 @@ const items: Array<{
   { to: '/players', label: 'Players', icon: UserRound },
 ];
 
+const moreActivePrefixes = ['/live', '/statistics', '/settings', '/profile'];
+
 export function MobileBottomNav() {
+  const { pathname } = useLocation();
   const setMobileMoreOpen = useUiStore((s) => s.setMobileMoreOpen);
+  const moreActive = moreActivePrefixes.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
 
   return (
     <nav
@@ -48,7 +54,11 @@ export function MobileBottomNav() {
         <li className="flex-1">
           <button
             type="button"
-            className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-text-muted"
+            className={cn(
+              'flex h-full w-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
+              moreActive ? 'text-primary' : 'text-text-muted',
+            )}
+            aria-current={moreActive ? 'page' : undefined}
             onClick={() => setMobileMoreOpen(true)}
           >
             <Menu className="h-5 w-5" aria-hidden />
