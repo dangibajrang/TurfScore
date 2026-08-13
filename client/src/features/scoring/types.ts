@@ -68,6 +68,7 @@ export type InningsState = {
   strikerId: string | null;
   nonStrikerId: string | null;
   currentBowlerId: string | null;
+  lastOverBowlerId?: string | null;
   ballsInCurrentOver: number;
   batters: Record<string, BatterState>;
   bowlers: Record<string, BowlerState>;
