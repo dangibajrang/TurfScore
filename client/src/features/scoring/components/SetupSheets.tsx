@@ -124,28 +124,32 @@ export function BowlerSelectSheet({
             ? Math.floor(figs.legalBalls / ballsPerOver)
             : 0;
           const atLimit = completedOvers >= maxOvers;
+          const bowledLastOver =
+            inn.ballsInCurrentOver === 0 && inn.lastOverBowlerId === p.playerId;
+          const blocked = atLimit || bowledLastOver || pending;
           return (
             <li key={p.playerId}>
               <button
                 type="button"
-                disabled={atLimit || pending}
+                disabled={blocked}
                 className="flex w-full items-center justify-between gap-3 rounded-control border border-border-subtle bg-surface-elevated px-3 py-3 text-left disabled:opacity-40"
                 onClick={() => onConfirm(p.playerId)}
                 data-testid={`pick-bowler-${p.playerId}`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2">
                   <Avatar name={p.playerName ?? 'P'} size="sm" />
-                  <span>
-                    <span className="block font-semibold">{p.playerName ?? 'Player'}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{p.playerName ?? 'Player'}</span>
                     <span className="text-xs text-text-muted">{p.role ?? 'BOWLER'}</span>
                   </span>
                 </span>
-                <span className="text-right text-xs text-text-muted">
+                <span className="shrink-0 text-right text-xs text-text-muted">
                   {completedOvers}/{maxOvers} ov
                   {figs
                     ? ` · ${figs.runsConceded}/${figs.wickets}`
                     : ' · available'}
                   {atLimit ? ' · limit' : ''}
+                  {bowledLastOver ? ' · last over' : ''}
                 </span>
               </button>
             </li>
