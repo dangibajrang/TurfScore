@@ -36,7 +36,12 @@ function mapEngineError(err: unknown): never {
   if (err instanceof CricketEngineError) {
     const code = err.code as ErrorCode;
     throw new AppError(err.message, {
-      statusCode: err.code === 'BOWLER_LIMIT_REACHED' || err.code === 'MATCH_VERSION_CONFLICT' ? 409 : 400,
+      statusCode:
+        err.code === 'BOWLER_LIMIT_REACHED' ||
+        err.code === 'CONSECUTIVE_OVERS' ||
+        err.code === 'MATCH_VERSION_CONFLICT'
+          ? 409
+          : 400,
       code,
     });
   }
@@ -74,6 +79,7 @@ function loadState(match: InstanceType<typeof Match>): MatchState {
       inn.fallOfWickets = inn.fallOfWickets ?? [];
       inn.partnerships = inn.partnerships ?? [];
       inn.extras = inn.extras ?? { wide: 0, noBall: 0, bye: 0, legBye: 0, penalty: 0 };
+      inn.lastOverBowlerId = inn.lastOverBowlerId ?? null;
     }
     return state;
   }
@@ -563,6 +569,7 @@ export async function recordDelivery(
     state: applied!.state,
     result: applied!.result,
     scorecard: buildMatchScorecard(applied!.state),
+    presentation: buildLivePresentation(applied!.state),
   };
 }
 
@@ -610,11 +617,10 @@ export async function undoLastDelivery(
     eventId: last.eventId,
   });
 
+  const scored = await getScoringState(auth, matchId);
   return {
-    matchVersion: match.version,
+    ...scored,
     undoneEventId: last.eventId,
-    state: rebuilt,
-    scorecard: buildMatchScorecard(rebuilt),
   };
 }
 
