@@ -204,8 +204,8 @@ export function WicketSheet({ open, match, state, onClose, onConfirm, pending }:
               type="button"
               className={
                 draft.wicketType === t
-                  ? 'min-h-12 rounded-control border border-danger bg-danger-muted font-semibold'
-                  : 'min-h-12 rounded-control border border-border-subtle font-semibold'
+                  ? 'min-h-12 min-w-0 rounded-control border border-danger bg-danger-muted px-1 text-xs font-semibold sm:text-sm'
+                  : 'min-h-12 min-w-0 rounded-control border border-border-subtle px-1 text-xs font-semibold sm:text-sm'
               }
               onClick={() => setDraft({ wicketType: t })}
             >
