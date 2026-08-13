@@ -12,7 +12,37 @@ import { isVersionConflict, scoringErrorMessage } from './errorMessages';
 import { scoringApi } from './scoringApi';
 import { scoringKeys } from './scoringKeys';
 import { useScoringUiStore } from './scoringUiStore';
-import type { DeliveryCommandPayload, ScoringStateResponse } from './types';
+import type { DeliveryCommandPayload, DeliveryDto, ScoringStateResponse } from './types';
+
+function asDeliveryDto(raw: unknown): DeliveryDto | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const d = raw as Record<string, unknown>;
+  const id = d.id ?? d._id;
+  const runs = d.runs as DeliveryDto['runs'] | undefined;
+  if (id == null || !runs) return null;
+  return {
+    id: String(id),
+    eventId: String(d.eventId ?? id),
+    inningsNumber: Number(d.inningsNumber ?? 1),
+    overNumber: Number(d.overNumber ?? 0),
+    ballNumber: Number(d.ballNumber ?? 0),
+    sequence: Number(d.sequence ?? 0),
+    batterId: String(d.batterId ?? ''),
+    nonStrikerId: String(d.nonStrikerId ?? ''),
+    bowlerId: String(d.bowlerId ?? ''),
+    runs,
+    extras: (d.extras as DeliveryDto['extras']) ?? {
+      wide: 0,
+      noBall: 0,
+      bye: 0,
+      legBye: 0,
+      penalty: 0,
+    },
+    wicket: (d.wicket as DeliveryDto['wicket']) ?? { isWicket: false },
+    isLegalDelivery: Boolean(d.isLegalDelivery),
+    isCorrection: Boolean(d.isCorrection),
+  };
+}
 
 export function useMatchMeta(matchId: string) {
   return useQuery({
@@ -28,6 +58,8 @@ export function useScoringState(matchId: string) {
     queryFn: () => scoringApi.getState(matchId),
     enabled: !!matchId,
     refetchOnWindowFocus: false,
+    networkMode: 'always',
+    staleTime: 0,
   });
 }
 
@@ -62,6 +94,8 @@ export function useScoringActions(matchId: string) {
     const data = await qc.fetchQuery({
       queryKey: scoringKeys.state(matchId),
       queryFn: () => scoringApi.getState(matchId),
+      staleTime: 0,
+      networkMode: 'always',
     });
     const match = qc.getQueryData<MatchDto>(scoringKeys.match(matchId));
     if (match && data) {
@@ -93,10 +127,20 @@ export function useScoringActions(matchId: string) {
     (
       presentation: ScoringStateResponse['presentation'],
       state: ScoringStateResponse['state'],
+      extras?: {
+        recentDeliveries?: ScoringStateResponse['recentDeliveries'];
+        scorecard?: ScoringStateResponse['scorecard'];
+      },
     ) => {
       qc.setQueryData<ScoringStateResponse>(scoringKeys.state(matchId), (prev) => {
         if (!prev) return prev;
-        return { ...prev, presentation, state };
+        return {
+          ...prev,
+          presentation,
+          state,
+          recentDeliveries: extras?.recentDeliveries ?? prev.recentDeliveries,
+          scorecard: extras?.scorecard ?? prev.scorecard,
+        };
       });
     },
     [qc, matchId],
@@ -149,7 +193,7 @@ export function useScoringActions(matchId: string) {
             snapshot,
             forceQueue: offlineNow,
           });
-          // Apply crease projection before the next offline command reads cache.
+          await qc.cancelQueries({ queryKey: scoringKeys.state(matchId) });
           if (outcome.mode === 'queued') {
             qc.setQueryData<ScoringStateResponse>(scoringKeys.state(matchId), (prev) => {
               if (!prev) return prev;
@@ -157,6 +201,8 @@ export function useScoringActions(matchId: string) {
                 ...prev,
                 presentation: outcome.projectedPresentation,
                 state: outcome.projectedState,
+                recentDeliveries: outcome.recentDeliveries,
+                scorecard: outcome.projectedScorecard,
               };
             });
           }
@@ -196,7 +242,10 @@ export function useScoringActions(matchId: string) {
     },
     onSuccess: async (outcome, vars) => {
       if (outcome.mode === 'queued') {
-        applyProjectedOffline(outcome.projectedPresentation, outcome.projectedState);
+        applyProjectedOffline(outcome.projectedPresentation, outcome.projectedState, {
+          recentDeliveries: outcome.recentDeliveries,
+          scorecard: outcome.projectedScorecard,
+        });
         showToast('Saved locally — waiting to sync');
         const runs = vars.batterRuns ?? 0;
         if (vars.wicket) setLastFlash('wicket');
@@ -219,16 +268,24 @@ export function useScoringActions(matchId: string) {
         matchVersion?: number;
         scorecard?: ScoringStateResponse['scorecard'];
         presentation?: ScoringStateResponse['presentation'];
+        delivery?: unknown;
       };
 
-      // Prefer response payload — avoid hanging refetch if the network drops mid-success.
+      await qc.cancelQueries({ queryKey: scoringKeys.state(matchId) });
       if (data.state && data.matchVersion != null) {
+        const mapped = asDeliveryDto(data.delivery);
         applyStateCache({
           matchVersion: data.matchVersion,
           state: data.state as ScoringStateResponse['state'],
           scorecard: data.scorecard,
           presentation: data.presentation,
-          recentDeliveries: undefined,
+          recentDeliveries: mapped
+            ? [
+                mapped,
+                ...(qc.getQueryData<ScoringStateResponse>(scoringKeys.state(matchId))
+                  ?.recentDeliveries ?? []),
+              ]
+            : undefined,
         });
       }
       void invalidate();
@@ -332,13 +389,39 @@ export function useScoringActions(matchId: string) {
     },
     onSuccess: async (outcome) => {
       if (outcome.mode === 'queued') {
-        showToast('Undo queued — will sync in order');
+        applyProjectedOffline(outcome.projectedPresentation, outcome.projectedState, {
+          recentDeliveries: outcome.recentDeliveries,
+          scorecard: outcome.projectedScorecard,
+        });
+        showToast('Last ball undone locally');
         setSheet(null);
         return;
       }
+      const data = outcome.response as {
+        matchVersion?: number;
+        status?: string;
+        state?: ScoringStateResponse['state'];
+        scorecard?: ScoringStateResponse['scorecard'];
+        presentation?: ScoringStateResponse['presentation'];
+        recentDeliveries?: ScoringStateResponse['recentDeliveries'];
+      };
+      await qc.cancelQueries({ queryKey: scoringKeys.state(matchId) });
+      if (data.state && data.matchVersion != null) {
+        applyStateCache({
+          matchVersion: data.matchVersion,
+          state: data.state,
+          scorecard: data.scorecard,
+          presentation: data.presentation,
+          recentDeliveries: data.recentDeliveries,
+        });
+      }
       showToast('Last delivery undone');
       setSheet(null);
-      await invalidate();
+      try {
+        await refreshState();
+      } catch {
+        // Cache already holds the undo response; a failed refetch must not revert the UI.
+      }
     },
     onError: async (err) => {
       showToast(scoringErrorMessage(err));
