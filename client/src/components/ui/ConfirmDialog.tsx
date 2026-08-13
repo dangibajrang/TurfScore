@@ -32,12 +32,13 @@ export function ConfirmDialog({
       title={title}
       onClose={onClose}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose} disabled={loading}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" className="w-full sm:w-auto" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </Button>
           <Button
             variant={danger ? 'danger' : 'primary'}
+            className="w-full sm:w-auto"
             onClick={onConfirm}
             disabled={loading}
           >
