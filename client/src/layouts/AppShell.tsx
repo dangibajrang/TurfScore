@@ -38,28 +38,29 @@ export function AppShell() {
           ? 'Player'
           : 'TurfScore');
   const status = useAuthStore((s) => s.status);
-  const hideBottomNav = pathname.includes('/live');
+  // Keep the keypad unobstructed on the scoring screen only — not the /live list.
+  const hideBottomNav = /^\/matches\/[^/]+\/live\/?$/.test(pathname);
 
   return (
     <div className="relative h-dvh overflow-hidden">
       <DesktopSidebar />
       <div className="flex h-full min-w-0 flex-col md:pl-[var(--sidebar-width)]">
         {/* Pinned chrome — page scroll lives in <main> only */}
-        <header className="z-30 shrink-0 border-b border-border-subtle bg-background px-4 py-3 md:px-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-text-subtle md:hidden">
+        <header className="z-30 shrink-0 border-b border-border-subtle bg-background px-3 py-3 sm:px-4 md:px-6">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium uppercase tracking-[0.16em] text-text-subtle md:hidden">
                 TurfScore
               </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">
+              <div className="flex min-w-0 items-center gap-2">
+                <h1 className="truncate font-display text-lg font-semibold tracking-tight sm:text-xl md:text-2xl">
                   {title}
                 </h1>
                 {status === 'guest' ? <Badge tone="warning">Guest</Badge> : null}
               </div>
             </div>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
-              <GlobalSearch className="max-w-[9.5rem] flex-1 xs:max-w-[12rem] sm:max-w-xs md:max-w-sm" />
+            <div className="flex shrink-0 items-center justify-end gap-2">
+              <GlobalSearch className="hidden w-40 sm:block md:w-64" />
               <UserMenu />
             </div>
           </div>
@@ -68,8 +69,8 @@ export function AppShell() {
         <main
           className={
             hideBottomNav
-              ? 'min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-6'
-              : 'min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-[calc(var(--bottom-nav-height)+20px+env(safe-area-inset-bottom,0px))] pt-4 md:px-6 md:pb-8 md:pt-6'
+              ? 'min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain px-3 pb-6 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6'
+              : 'min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain px-3 pb-[calc(var(--bottom-nav-height)+20px+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6'
           }
         >
           <Outlet />
